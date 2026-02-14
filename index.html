@@ -101,7 +101,7 @@ header img {
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // Daily seeded shuffle
+  // Daily seeded shuffle → change to hourly seeded shuffle
   function seededShuffle(array, seed) {
     let currentIndex = array.length;
     function random() { const x = Math.sin(seed++) * 10000; return x - Math.floor(x); }
@@ -123,8 +123,9 @@ header img {
       return;
     }
 
-    const today = new Date();
-    const seed = today.getFullYear() * 1000 + today.getMonth() * 100 + today.getDate();
+    // Hourly seed: year * 10000 + month*100 + day + hour
+    const now = new Date();
+    const seed = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate() + now.getHours();
     articles = seededShuffle(articles, seed);
 
     const container = document.getElementById("articles");
@@ -134,12 +135,11 @@ header img {
       const div = document.createElement("div");
       div.className = index === 0 ? "article featured" : "article";
 
-      // Only show the title, fallback to doc ID if missing
+      // Only title, fallback to doc ID
       const title = article.title || article.id;
-
       div.innerHTML = `<h2>${title}</h2>`;
 
-      // Go to /news/articles/<docID>.html
+      // Link to /news/articles/<docID>.html
       div.onclick = () => {
         window.location.href = "/news/articles/" + article.id + ".html";
       };
