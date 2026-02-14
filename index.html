@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voltz News</title>
+
+<style>
+/* Static light → dark blue gradient background */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  min-height: 100vh;
+  color: white;
+  position: relative;
+  background: linear-gradient(to bottom right, #7dd3fc, #0f4c81); /* light blue to dark blue */
+  overflow-x: hidden;
+}
+
+/* Header with logo only */
+header {
+  display: flex;
+  justify-content: center;
+  padding: 60px 20px; /* more vertical padding */
+}
+
+header img {
+  height: 140px; /* increased logo size */
+  width: auto;
+  object-fit: contain;
+}
+
+/* Grid for articles */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  padding: 40px;
+}
+
+/* Article cards */
+.article {
+  background: rgba(255,255,255,0.07);
+  padding: 30px;
+  border-radius: 18px;
+  backdrop-filter: blur(12px);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  cursor: pointer;
+  opacity: 0;
+  animation: fadeIn 0.6s forwards;
+}
+
+.article:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+}
+
+/* Featured article */
+.featured {
+  grid-column: span 2;
+  font-size: 1.15em;
+}
+
+.article h2 {
+  margin: 0 0 12px;
+  font-size: 22px;
+}
+
+.article p {
+  opacity: 0.9;
+  line-height: 1.5;
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(20px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <img src="https://usevoltz.github.io/news/logo.png" alt="Voltz Logo">
+</header>
+
+<div class="grid" id="articles">
+  <!-- Articles will be inserted here -->
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDBSDFIRH28BNF-i0Tb190uHt1Et1lGgwE",
+    authDomain: "voltz-news.firebaseapp.com",
+    projectId: "voltz-news",
+    storageBucket: "voltz-news.firebasestorage.app",
+    messagingSenderId: "605560967867",
+    appId: "1:605560967867:web:38141ba2bab4e14cb64f9e",
+    measurementId: "G-LG6M17MF0C"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  function seededShuffle(array, seed) {
+    let currentIndex = array.length;
+    function random() { const x = Math.sin(seed++) * 10000; return x - Math.floor(x); }
+    while (currentIndex !== 0) {
+      const randomIndex = Math.floor(random() * currentIndex);
+      currentIndex--;
+      [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    }
+    return array;
+  }
+
+  async function loadArticles() {
+    const snapshot = await getDocs(collection(db, "articles"));
+    let articles = [];
+    snapshot.forEach(doc => articles.push({id: doc.id, ...doc.data()}));
+
+    if (articles.length === 0) {
+      document.getElementById("articles").innerHTML = "<p>No articles found.</p>";
+      return;
+    }
+
+    const today = new Date();
+    const seed = today.getFullYear() * 1000 + today.getMonth() * 100 + today.getDate();
+    articles = seededShuffle(articles, seed);
+
+    const container = document.getElementById("articles");
+    container.innerHTML = "";
+
+    articles.forEach((article, index) => {
+      const div = document.createElement("div");
+      div.className = index === 0 ? "article featured" : "article";
+      div.innerHTML = `<h2>${article.title}</h2><p>${article.excerpt}</p>`;
+      div.onclick = () => { window.location.href = "/articles/" + article.id + ".html"; };
+      container.appendChild(div);
+    });
+  }
+
+  loadArticles();
+</script>
+
+</body>
+</html>
