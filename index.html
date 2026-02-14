@@ -6,7 +6,6 @@
 <title>Voltz News</title>
 
 <style>
-/* Static light → dark blue gradient background */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
@@ -65,7 +64,6 @@ header img {
   font-size: 22px;
 }
 
-/* Fade-in animation */
 @keyframes fadeIn {
   from {opacity: 0; transform: translateY(20px);}
   to {opacity: 1; transform: translateY(0);}
@@ -76,14 +74,13 @@ header img {
 <body>
 
 <header>
-  <img src="https://usevoltz.github.io/news/logo.png" alt="Voltz Logo">
+  <img src="https://usevoltz.github.io/logo.png" alt="Voltz Logo">
 </header>
 
 <div class="grid" id="articles">
   <!-- Articles will be inserted here -->
 </div>
 
-<!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
   import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
@@ -101,7 +98,6 @@ header img {
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // Daily seeded shuffle → change to hourly seeded shuffle
   function seededShuffle(array, seed) {
     let currentIndex = array.length;
     function random() { const x = Math.sin(seed++) * 10000; return x - Math.floor(x); }
@@ -123,10 +119,12 @@ header img {
       return;
     }
 
-    // Hourly seed: year * 10000 + month*100 + day + hour
     const now = new Date();
     const seed = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate() + now.getHours();
     articles = seededShuffle(articles, seed);
+
+    // Limit to 10 articles
+    articles = articles.slice(0, 10);
 
     const container = document.getElementById("articles");
     container.innerHTML = "";
@@ -134,21 +132,17 @@ header img {
     articles.forEach((article, index) => {
       const div = document.createElement("div");
       div.className = index === 0 ? "article featured" : "article";
-
-      // Only title, fallback to doc ID
       const title = article.title || article.id;
       div.innerHTML = `<h2>${title}</h2>`;
-
-      // Link to /news/articles/<docID>.html
       div.onclick = () => {
         window.location.href = "/news/articles/" + article.id + ".html";
       };
-
       container.appendChild(div);
     });
   }
 
   loadArticles();
+  // ✅ Removed auto-refresh, user must manually reload to see new shuffle
 </script>
 
 </body>
